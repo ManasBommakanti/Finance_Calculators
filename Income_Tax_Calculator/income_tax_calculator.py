@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 
 
 def plot_tax(tax, net_income):
-    labels = list(tax.keys())[0:-1] + ["Net Income"]
+    labels = list(tax.keys())[0:-2] + ["Net Income"]
     values = [tax[key]["amount"] for key in labels[0:-1]] + [net_income]
 
     fig = go.Figure(data=[go.Pie(labels=labels, values=values)])

@@ -41,7 +41,11 @@
             "INCLUDE YOUR STATE BRACKET HERE"
         ]
     ],
-    "local_bracket": [],
+    "local_bracket": [
+        [
+            "INCLUDE YOUR LOCAL BRACKET HERE"
+        ]
+    ],
     "fica": 7.65,
     "gross_income": "[INCLUDE YOUR GROSS INCOME HERE]"
 }

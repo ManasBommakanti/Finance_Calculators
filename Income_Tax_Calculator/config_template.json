@@ -1,0 +1,47 @@
+{
+    "_comments": {
+        "HOW TO POPULATE THE BRACKETS [DELETE THIS AFTERWARD]": "The bracket array should contain sub-arrays where each sub-array represents a tax bracket. Each sub-array should have two elements: the tax rate and the income threshold. Example: [0, 0], [2, 3000], [3, 5000], [5, 17000], [5.75, 999999999]"
+    },
+    "federal_bracket": [
+        [
+            0,
+            0
+        ],
+        [
+            10,
+            11925
+        ],
+        [
+            12,
+            48475
+        ],
+        [
+            22,
+            103350
+        ],
+        [
+            24,
+            197300
+        ],
+        [
+            32,
+            250525
+        ],
+        [
+            35,
+            626350
+        ],
+        [
+            37,
+            999999999
+        ]
+    ],
+    "state_bracket": [
+        [
+            "INCLUDE YOUR STATE BRACKET HERE"
+        ]
+    ],
+    "local_bracket": [],
+    "fica": 7.65,
+    "gross_income": "[INCLUDE YOUR GROSS INCOME HERE]"
+}

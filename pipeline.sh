@@ -26,7 +26,12 @@ elif [ "$plot_income_tax_graph" == "n" -a "$income" != "n" ]; then
     python $INCOME_TAX_CALC_DIR/income_tax_calculator.py $INCOME_TAX_CALC_DIR/config.json -i $income
 fi
 
-effective_tax_rate=$(python $INCOME_TAX_CALC_DIR/income_tax_calculator.py $INCOME_TAX_CALC_DIR/config.json -t -i $income)
+if [ "$income" == "n" ]; then
+    effective_tax_rate=$(python $INCOME_TAX_CALC_DIR/income_tax_calculator.py $INCOME_TAX_CALC_DIR/config.json -t)
+else
+    effective_tax_rate=$(python $INCOME_TAX_CALC_DIR/income_tax_calculator.py $INCOME_TAX_CALC_DIR/config.json -t -i $income)
+fi
+
 printf "\nEffective tax rate: %.2f%% \n\n" $effective_tax_rate
 
 # Would you also like to calculate budget?
@@ -41,13 +46,13 @@ read -p "Would you like to plot the graph of budget? (y/n): " plot_graph
 
 # Calculate budget
 if [ "$plot_graph" == "y" ]; then
-    if $income == "n"; then
+    if [ $income == "n" ]; then
         python $BUDGET_CALC_DIR/budget_calculator.py $BUDGET_CALC_DIR/config.json -t $effective_tax_rate -p
     else
         python $BUDGET_CALC_DIR/budget_calculator.py $BUDGET_CALC_DIR/config.json -t $effective_tax_rate -p -i $income
     fi
 else
-    if $income == "n"; then
+    if [ $income == "n" ]; then
         python $BUDGET_CALC_DIR/budget_calculator.py $BUDGET_CALC_DIR/config.json -t $effective_tax_rate
     else
         python $BUDGET_CALC_DIR/budget_calculator.py $BUDGET_CALC_DIR/config.json -t $effective_tax_rate -i $income

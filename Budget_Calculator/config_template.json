@@ -1,0 +1,46 @@
+{
+    "income": {
+        "base_salary": "Enter your base salary here",
+        "tax_rate": "Enter your tax rate (Federal + State + FICA) here in percentage form (ex. 22.42)"
+    },
+    "expenses": {
+        "[DELETE THIS LINE]": "Enter your monthly expenses here; the following below are some examples [DELETE THIS LINE]",
+        "rent": "Enter your monthly rent here",
+        "renters_insurance": "Enter your monthly renters insurance here",
+        "trash": "Enter your monthly trash expense here",
+        "electric": "Enter your monthly electric bill here",
+        "water": "Enter your monthly water bill here",
+        "groceries": "Enter your monthly groceries expense here",
+        "restaurants": "Enter your monthly restaurants expense here",
+        "internet": "Enter your monthly internet bill here",
+        "Spotify": "Enter your monthly Spotify subscription here",
+        "Car": "Enter your monthly car expense here"
+    },
+    "retirement": {
+        "max_401k_contribution": "Enter your maximum 401k contribution here",
+        "max_roth_ira_contribution": "Enter your maximum Roth IRA contribution here",
+        "employer_match_percentage": [
+            [
+                "Enter employer match percentage for first tier here",
+                "Enter employer match percentage for first tier here"
+            ],
+            [
+                "Enter employer match percentage for second tier here (if applicable)",
+                "Enter employer match percentage for second tier here (if applicable)"
+            ],
+            [
+                "Enter employer match percentage for third tier here (if applicable)",
+                "Enter employer match percentage for third tier here (if applicable)"
+            ],
+            [
+                "Continue if necessary",
+                "Continue if necessary"
+            ]
+        ]
+    },
+    "misc": {
+        "emergency_fund_months": "Enter the number of months you want to save for your emergency fund",
+        "emergency_fund_payoff_months": "Enter the number of months you want to pay off your emergency fund",
+        "savings_rate": "Enter your savings rate here in decimal form (ex. 0.1)"
+    }
+}

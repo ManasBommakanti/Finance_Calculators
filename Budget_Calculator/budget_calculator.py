@@ -165,7 +165,7 @@ def calculate(
     required_emergency_fund = total_monthly_expenses * emergency_fund_months
 
     # Calculate the monthly contribution needed to achieve the required emergency fund in the specified months
-    emergency_fund_per_month = 0
+    emergency_fund_per_month = 0.0
     if emergency_fund_payoff_months > 0:
         emergency_fund_per_month = (
             required_emergency_fund / emergency_fund_payoff_months

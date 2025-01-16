@@ -1,7 +1,7 @@
 import sys, json
 import plotly.graph_objects as go
 
-# Usage: python income_tax_calculator.py <config_file> [-t (only tax)] [-p (plot)] [-i income]
+# Usage: python income_tax_calculator.py <config_file> [-t (only tax)] [-p (plot)] [-i income] [-c (401k contribution)] [-d pre_tax_deducts]
 
 
 def plot_tax(tax, net_income):
@@ -12,7 +12,10 @@ def plot_tax(tax, net_income):
     fig.show()
 
 
-def calculate_tax(gross_income, federal_bracket, state_bracket, local_bracket, fica):
+def calculate_tax(
+    gross_income, pre_tax_deducts, federal_bracket, state_bracket, local_bracket, fica
+):
+    gross_income -= pre_tax_deducts
     federal_tax, effective_fed_tax = calculate_bracket_tax(
         gross_income, federal_bracket
     )
@@ -79,7 +82,7 @@ def calculate_fica_tax(gross_income, fica):
 def run():
     if len(sys.argv) < 2:
         print(
-            "Usage: python income_tax_calculator.py <config_file> [-t (only tax)] [-p (plot)] [-i income]"
+            "Usage: python income_tax_calculator.py <config_file> [-t (only tax)] [-p (plot)] [-i income] [-c (401k contribution)] [-d pre_tax_deducts]"
         )
         return
 
@@ -91,13 +94,28 @@ def run():
         if "-i" in sys.argv
         else config["gross_income"]
     )
+    individual_401k_contribution = (
+        float(sys.argv[sys.argv.index("-c") + 1])
+        if "-c" in sys.argv
+        else config["401k contribution"]
+    )
+    pre_tax_deduct = (
+        float(sys.argv[sys.argv.index("-d") + 1])
+        if "-d" in sys.argv
+        else config["pre-tax deductions"]
+    )
     federal_bracket = config["federal_bracket"]
     state_bracket = config["state_bracket"]
     local_bracket = config["local_bracket"]
     fica = config["fica"]
 
     tax = calculate_tax(
-        gross_income, federal_bracket, state_bracket, local_bracket, fica
+        gross_income,
+        individual_401k_contribution + pre_tax_deduct,
+        federal_bracket,
+        state_bracket,
+        local_bracket,
+        fica,
     )
 
     if "-t" in sys.argv:

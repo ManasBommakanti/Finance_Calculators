@@ -1,7 +1,7 @@
 import sys, json
 import plotly.graph_objects as go
 
-# Usage: python budget_calculator.py <config_file> [-t <tax_rate>] [-p (plot)] [-i <income>]
+# Usage: python budget_calculator.py <config_file> [-t <tax_rate>] [-p (plot)] [-i <income>] [-c <401k_contribution>] [-d <pre_tax_deducts>]
 
 
 def plot_budget_pie_chart(info, expenses):
@@ -71,7 +71,7 @@ def plot_budget_pie_chart(info, expenses):
     fig.update_layout(
         title_text="Annual Budget Breakdown",
         title_x=0.5,  # Center-align title
-        showlegend=False,  # Remove legend as labels are displayed on hover
+        showlegend=True,  # Remove legend as labels are displayed on hover
     )
 
     # Display the interactive chart
@@ -111,6 +111,7 @@ def calculate(
     emergency_fund_payoff_months = misc["emergency_fund_payoff_months"]
     stock = misc["stock"]
     stock_matching = misc["stock_matching"]
+    pre_tax_deducts = misc["pre-tax deductions"]
 
     # Calculate gross paycheck
     gross_paycheck = base_salary / paycheck_frequency
@@ -126,7 +127,7 @@ def calculate(
 
     total_401k_contribution = max_401k_contribution + total_employer_match
 
-    post_401k_salary = base_salary - max_401k_contribution
+    post_401k_salary = base_salary - max_401k_contribution - pre_tax_deducts
 
     # Taxes and deductions
     annual_tax = post_401k_salary * (tax_rate / 100)
@@ -136,7 +137,9 @@ def calculate(
     # Calculate post-stock salary and paycheck after 401k reduction
     stock_contribution = base_salary * stock
     company_contribution = stock_contribution * stock_matching
-    post_stock_bonus_salary = post_tax_salary + (company_contribution * tax_rate / 100)
+    post_stock_bonus_salary = post_tax_salary + (
+        company_contribution * (1 - (tax_rate / 100))
+    )
     post_stock_bonus_paycheck = post_stock_bonus_salary / paycheck_frequency
     # post_stock_salary = post_tax_salary + company_contribution
     # post_stock_paycheck = post_stock_salary / paycheck_frequency
@@ -237,9 +240,9 @@ def calculate(
 
 
 def run():
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 2:
         print(
-            "Usage: python budget_calculator.py <config_file> [-t <tax_rate>] [-p (plot)] [-i <income>]"
+            "Usage: python budget_calculator.py <config_file> [-t <tax_rate>] [-p (plot)] [-i <income>] [-c <401k_contribution>] [-d <pre_tax_deducts>]"
         )
         sys.exit(1)
 
@@ -254,7 +257,11 @@ def run():
         if "-i" in sys.argv
         else float(income["base_salary"])
     )
-    tax_rate = income["tax_rate"] if sys.argv[2] != "-t" else float(sys.argv[3])
+    tax_rate = (
+        float(sys.argv[sys.argv.index("-t") + 1])
+        if "-t" in sys.argv
+        else float(income["tax_rate"])
+    )
     paycheck_frequency = income["paycheck_frequency"]
 
     # Access expenses section
@@ -262,12 +269,22 @@ def run():
 
     # Access retirement section
     retirement = config["retirement"]
-    max_401k_contribution = retirement["max_401k_contribution"]
+    max_401k_contribution = (
+        float(sys.argv[sys.argv.index("-c") + 1])
+        if "-c" in sys.argv
+        else retirement["max_401k_contribution"]
+    )
     max_roth_ira_contribution = retirement["max_roth_ira_contribution"]
     employer_match_percentage = retirement["employer_match_percentage"]
 
     # Access misc section
     misc = config["misc"]
+
+    misc["pre-tax deductions"] = (
+        float(sys.argv[sys.argv.index("-d") + 1])
+        if "-d" in sys.argv
+        else float(misc["pre-tax deductions"])
+    )
 
     print()
     print("INPUTS")

@@ -14,23 +14,27 @@ if [ "$plot_income_tax_graph" != "n" -a "$plot_income_tax_graph" != "y" ]; then
 fi
 
 read -p "Enter your income (write 'n' if you would like to use config.json): " income
+read -p "Enter the amount you would like to put into 401k (write 'n' if you would like to use config.json): " individ_401k_contrib
+read -p "Enter the amount of remaining pre-tax deductions (write 'n' if you would like to use config.json): " pre_tax_deduct
 
-# Calculate income tax
+tax_execute_string="$INCOME_TAX_CALC_DIR/income_tax_calculator.py $INCOME_TAX_CALC_DIR/config.json"
 if [ "$plot_income_tax_graph" == "y" ]; then
-    if [ "$income" == "n" ]; then
-        python $INCOME_TAX_CALC_DIR/income_tax_calculator.py $INCOME_TAX_CALC_DIR/config.json -p
-    else
-        python $INCOME_TAX_CALC_DIR/income_tax_calculator.py $INCOME_TAX_CALC_DIR/config.json -i $income -p
-    fi
-elif [ "$plot_income_tax_graph" == "n" -a "$income" != "n" ]; then
-    python $INCOME_TAX_CALC_DIR/income_tax_calculator.py $INCOME_TAX_CALC_DIR/config.json -i $income
+    tax_execute_string="$tax_execute_string -p"
+fi
+if [ "$income" != "n" ]; then
+    tax_execute_string="$tax_execute_string -i $income"
+fi
+if [ "$individ_401k_contrib" != "n" ]; then
+    tax_execute_string="$tax_execute_string -c $individ_401k_contrib"
+fi
+if [ "$pre_tax_deduct" != "n" ]; then
+    tax_execute_string="$tax_execute_string -d $pre_tax_deduct"
 fi
 
-if [ "$income" == "n" ]; then
-    effective_tax_rate=$(python $INCOME_TAX_CALC_DIR/income_tax_calculator.py $INCOME_TAX_CALC_DIR/config.json -t)
-else
-    effective_tax_rate=$(python $INCOME_TAX_CALC_DIR/income_tax_calculator.py $INCOME_TAX_CALC_DIR/config.json -t -i $income)
-fi
+python $tax_execute_string
+
+tax_execute_string="${tax_execute_string// -p/} -t"
+effective_tax_rate=$(python $tax_execute_string)
 
 printf "\nEffective tax rate: %.2f%% \n\n" $effective_tax_rate
 
@@ -44,17 +48,19 @@ fi
 # Would you like to plot the graph of budget?
 read -p "Would you like to plot the graph of budget? (y/n): " plot_graph
 
-# Calculate budget
+budget_execute_string="$BUDGET_CALC_DIR/budget_calculator.py $BUDGET_CALC_DIR/config.json -t $effective_tax_rate"
+
 if [ "$plot_graph" == "y" ]; then
-    if [ $income == "n" ]; then
-        python $BUDGET_CALC_DIR/budget_calculator.py $BUDGET_CALC_DIR/config.json -t $effective_tax_rate -p
-    else
-        python $BUDGET_CALC_DIR/budget_calculator.py $BUDGET_CALC_DIR/config.json -t $effective_tax_rate -p -i $income
-    fi
-else
-    if [ $income == "n" ]; then
-        python $BUDGET_CALC_DIR/budget_calculator.py $BUDGET_CALC_DIR/config.json -t $effective_tax_rate
-    else
-        python $BUDGET_CALC_DIR/budget_calculator.py $BUDGET_CALC_DIR/config.json -t $effective_tax_rate -i $income
-    fi
+    budget_execute_string="$budget_execute_string -p"
 fi
+if [ "$income" != "n" ]; then
+    budget_execute_string="$budget_execute_string -i $income"
+fi
+if [ "$individ_401k_contrib" != "n" ]; then
+    budget_execute_string="$budget_execute_string -c $individ_401k_contrib"
+fi
+if [ "$pre_tax_deduct" != "n" ]; then
+    budget_execute_string="$budget_execute_string -d $pre_tax_deduct"
+fi
+
+python $budget_execute_string

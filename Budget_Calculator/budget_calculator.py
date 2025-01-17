@@ -1,12 +1,12 @@
 import sys, json
 import plotly.graph_objects as go
 
-# Usage: python budget_calculator.py <config_file> [-t <tax_rate>] [-p (plot)] [-i <income>] [-c <401k_contribution>] [-d <pre_tax_deducts>]
+# Usage: python budget_calculator.py <config_file> [-t <tax_rate>] [-p (plot)] [-i <income>] [-c <401k_contribution>] [-d <pre_tax_deducts>] [-b <post_tax_bonus>]
 
 
 def plot_budget_pie_chart(info, expenses):
     # Extract relevant data from the dictionary
-    income = info["Income"]["Post-Tax Salary"]
+    income = info["Income"]["Net Salary (minus all deductions)"]
     retirement = (info["Retirement"]["401k Contribution (Individual)"]) / income
     # expenses = info["Expenses"]["Monthly Expenses"] * 12
     expenses_cleaned = {
@@ -81,6 +81,7 @@ def plot_budget_pie_chart(info, expenses):
 def calculate(
     base_salary,
     tax_rate,
+    post_tax_bonus,
     max_401k_contribution,
     max_roth_ira_contribution,
     expenses,
@@ -94,6 +95,7 @@ def calculate(
     Parameters:
         base_salary (float): Annual base salary in USD.
         tax_rate (float): Total tax rate (Federal + State + FICA) as a percentage (e.g., 27.96%).
+        post_tax_bonus (float): Post-tax bonus amount in USD.
         max_401k_contribution (float): Maximum allowable individual 401k contribution.
         max_roth_ira_contribution (float): Maximum allowable Roth IRA contribution.
         expenses (dict): Dictionary containing monthly expenses (rent, insurance, etc.).
@@ -130,7 +132,7 @@ def calculate(
     post_401k_salary = base_salary - max_401k_contribution - pre_tax_deducts
 
     # Taxes and deductions
-    annual_tax = post_401k_salary * (tax_rate / 100)
+    annual_tax = base_salary * (tax_rate / 100)
     post_tax_salary = post_401k_salary - annual_tax
     post_tax_paycheck = post_tax_salary / paycheck_frequency
 
@@ -141,8 +143,10 @@ def calculate(
         company_contribution * (1 - (tax_rate / 100))
     )
     post_stock_bonus_paycheck = post_stock_bonus_salary / paycheck_frequency
-    # post_stock_salary = post_tax_salary + company_contribution
-    # post_stock_paycheck = post_stock_salary / paycheck_frequency
+
+    # Calculate salary after post-tax bonus
+    post_stock_bonus_salary += post_tax_bonus
+    post_stock_bonus_paycheck += post_tax_bonus / paycheck_frequency
 
     # Calculate Roth IRA contribution
     roth_ira_per_paycheck = max_roth_ira_contribution / paycheck_frequency
@@ -189,8 +193,8 @@ def calculate(
             "Gross Paycheck": gross_paycheck,
             "Post-Tax Salary": post_tax_salary,
             "Post-Tax Paycheck": post_tax_paycheck,
-            "Post-Stock Bonus Salary": post_stock_bonus_salary,
-            "Post-Stock Bonus Paycheck": post_stock_bonus_paycheck,
+            "Post-Stock and Post-Tax Bonus Salary": post_stock_bonus_salary,
+            "Post-Stock and Post-Tax Bonus Paycheck": post_stock_bonus_paycheck,
             "Net Salary (minus all deductions)": net_annual_salary,
             "Net Paycheck (minus all deductions)": net_paycheck,
         },
@@ -223,16 +227,16 @@ def calculate(
         },
         "Summary": {
             "Accumulated Spending": balance,
-            "Pass": balance < post_tax_salary,
+            "Pass": balance < net_annual_salary,
             "advice": (
                 "Everything is balanced."
-                if balance == post_tax_salary
+                if balance == net_annual_salary
                 else (
-                    f"You are using ${balance - post_tax_salary:,.2f} more than you have! We need to save more. "
-                    f"This is ${balance / paycheck_frequency - post_tax_paycheck:,.2f} over per paycheck."
-                    if balance > post_tax_salary
-                    else f"You are saving ${post_tax_salary - balance:,.2f} less than you need! There is still more room to spend. "
-                    f"This is saving ${post_tax_paycheck - balance / paycheck_frequency:,.2f} per paycheck."
+                    f"You are using ${balance - net_annual_salary:,.2f} more than you have! We need to save more. "
+                    f"This is ${balance / paycheck_frequency - net_paycheck:,.2f} over per paycheck."
+                    if balance > net_annual_salary
+                    else f"You are saving ${net_annual_salary - balance:,.2f} less than you need! There is still more room to spend. "
+                    f"This is saving ${net_paycheck - balance / paycheck_frequency:,.2f} per paycheck."
                 )
             ),
         },
@@ -242,7 +246,7 @@ def calculate(
 def run():
     if len(sys.argv) < 2:
         print(
-            "Usage: python budget_calculator.py <config_file> [-t <tax_rate>] [-p (plot)] [-i <income>] [-c <401k_contribution>] [-d <pre_tax_deducts>]"
+            "Usage: python budget_calculator.py <config_file> [-t <tax_rate>] [-p (plot)] [-i <income>] [-c <401k_contribution>] [-d <pre_tax_deducts>] [-b <post_tax_bonus>]"
         )
         sys.exit(1)
 
@@ -263,6 +267,11 @@ def run():
         else float(income["tax_rate"])
     )
     paycheck_frequency = income["paycheck_frequency"]
+    post_tax_bonus = (
+        float(sys.argv[sys.argv.index("-b") + 1])
+        if "-b" in sys.argv
+        else income["post_tax_bonus"]
+    )
 
     # Access expenses section
     expenses = config["expenses"]
@@ -312,6 +321,7 @@ def run():
 
     info = calculate(
         base_salary=float(base_salary),
+        post_tax_bonus=float(post_tax_bonus),
         tax_rate=float(tax_rate),
         max_401k_contribution=float(max_401k_contribution),
         max_roth_ira_contribution=float(max_roth_ira_contribution),

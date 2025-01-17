@@ -15,13 +15,17 @@ def plot_tax(tax, net_income):
 def calculate_tax(
     gross_income, pre_tax_deducts, federal_bracket, state_bracket, local_bracket, fica
 ):
-    gross_income -= pre_tax_deducts
+    gross_post_deducts = gross_income - pre_tax_deducts
     federal_tax, effective_fed_tax = calculate_bracket_tax(
-        gross_income, federal_bracket
+        gross_post_deducts, federal_bracket, gross_income
     )
-    state_tax, effective_state_tax = calculate_bracket_tax(gross_income, state_bracket)
-    local_tax, effective_local_tax = calculate_bracket_tax(gross_income, local_bracket)
-    fica_tax, effectice_fica_tax = calculate_fica_tax(gross_income, fica)
+    state_tax, effective_state_tax = calculate_bracket_tax(
+        gross_post_deducts, state_bracket, gross_income
+    )
+    local_tax, effective_local_tax = calculate_bracket_tax(
+        gross_post_deducts, local_bracket, gross_income
+    )
+    fica_tax, effectice_fica_tax = calculate_fica_tax(gross_post_deducts, fica)
     total_tax = federal_tax + state_tax + local_tax + fica_tax
     total_effective_tax = (
         effective_fed_tax
@@ -55,28 +59,28 @@ def calculate_tax(
     }
 
 
-def calculate_bracket_tax(gross_income, bracket):
+def calculate_bracket_tax(gross_post_deducts, bracket, actual_gross_income):
     if bracket is None or bracket == []:
         return 0, 0
 
     total_tax = 0.0
 
     for i in range(1, len(bracket)):
-        if gross_income > bracket[i][1]:
+        if gross_post_deducts > bracket[i][1]:
             total_tax += (bracket[i][1] - bracket[i - 1][1]) * bracket[i][0] / 100
         else:
             total_tax += (
-                (gross_income - bracket[i - 1][1]) * bracket[i][0] / 100
-                if gross_income > bracket[i - 1][1]
+                (gross_post_deducts - bracket[i - 1][1]) * bracket[i][0] / 100
+                if gross_post_deducts > bracket[i - 1][1]
                 else 0
             )
             break
 
-    return total_tax, float(total_tax) / gross_income * 100
+    return total_tax, float(total_tax) / actual_gross_income * 100
 
 
-def calculate_fica_tax(gross_income, fica):
-    return gross_income * fica / 100, fica
+def calculate_fica_tax(gross_post_deducts, fica):
+    return gross_post_deducts * fica / 100, fica
 
 
 def run():
